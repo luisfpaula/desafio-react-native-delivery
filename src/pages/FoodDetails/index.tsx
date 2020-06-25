@@ -215,7 +215,10 @@ const FoodDetails: React.FC = () => {
     reset({
       routes: [
         {
-          name: 'DashboardStack',
+          name: 'MainBottom',
+          params: {
+            screen: 'Dashboard',
+          },
         },
       ],
       index: 0,
