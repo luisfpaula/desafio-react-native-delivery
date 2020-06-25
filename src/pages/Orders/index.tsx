@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 
+import { useNavigation } from '@react-navigation/native';
 import api from '../../services/api';
 import formatValue from '../../utils/formatValue';
 
@@ -23,20 +24,37 @@ interface Food {
   name: string;
   description: string;
   price: number;
-  formattedValue: number;
+  formattedValue: string;
   thumbnail_url: string;
 }
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Food[]>([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     async function loadOrders(): Promise<void> {
-      // Load orders from API
+      await api.get('orders').then(response => {
+        const apiFoods: Food[] = response.data;
+
+        apiFoods.forEach(food => {
+          const foodParsed = food;
+
+          foodParsed.formattedValue = formatValue(foodParsed.price);
+          return foodParsed;
+        });
+
+        setOrders(apiFoods);
+      });
     }
 
     loadOrders();
   }, []);
+
+  async function handleNavigate(id: number): Promise<void> {
+    // Navigate do ProductDetails page
+    navigation.navigate('FoodDetails', { id });
+  }
 
   return (
     <Container>
@@ -49,7 +67,11 @@ const Orders: React.FC = () => {
           data={orders}
           keyExtractor={item => String(item.id)}
           renderItem={({ item }) => (
-            <Food key={item.id} activeOpacity={0.6}>
+            <Food
+              key={item.id}
+              activeOpacity={0.6}
+              onPress={() => handleNavigate(item.id)}
+            >
               <FoodImageContainer>
                 <Image
                   style={{ width: 88, height: 88 }}
@@ -59,7 +81,7 @@ const Orders: React.FC = () => {
               <FoodContent>
                 <FoodTitle>{item.name}</FoodTitle>
                 <FoodDescription>{item.description}</FoodDescription>
-                <FoodPricing>{item.formattedPrice}</FoodPricing>
+                <FoodPricing>{item.formattedValue}</FoodPricing>
               </FoodContent>
             </Food>
           )}
